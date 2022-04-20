@@ -1,4 +1,5 @@
 import Node from "./Node";
+import Queue from "./Queue";
 
 import "./Grid.css";
 import React, { useState } from "react";
@@ -22,6 +23,37 @@ const Grid = () => {
   const [states, setStates] = useState(createStates(lenX, lenY));
   const [start, setStart] = useState(false);
   const [end, setEnd] = useState(false);
+  const [q, setQ] = useState(new Queue());
+
+  const BFS = () => {
+    const statesCopy = [...states];
+    const qCopy = q;
+
+    const [y, x] = qCopy.shift();
+    statesCopy[y][x] = "node green";
+
+    if (y - 1 >= 0 && statesCopy[y - 1][x] !== "node green") {
+      qCopy.push([y - 1, x]);
+    }
+    if (x + 1 < lenX && statesCopy[y][x + 1] !== "node green") {
+      qCopy.push([y, x + 1]);
+    }
+    if (y + 1 < lenY && statesCopy[y + 1][x] !== "node green") {
+      qCopy.push([y + 1, x]);
+    }
+    if (x - 1 >= 0 && statesCopy[y][x - 1] !== "node green") {
+      qCopy.push([y, x - 1]);
+    }
+
+    setStates(statesCopy);
+    setQ(qCopy);
+  };
+
+  if (start && end && q.length > 0) {
+    setTimeout(() => {
+      BFS();
+    }, 10);
+  }
 
   const updateState = (event) => {
     const x = parseInt(event.pageX / 31);
@@ -29,12 +61,13 @@ const Grid = () => {
     let newStates = createStates(lenX, lenY);
     if (!start || (start && end)) {
       newStates[y][x] = "node green";
-      setStart([x, y]);
+      setStart([y, x]);
       setEnd(null);
+      setQ([[y, x]]);
     } else {
       newStates[y][x] = "node red";
-      newStates[start[1]][start[0]] = "node green";
-      setEnd([x, y]);
+      newStates[start[0]][start[1]] = "node green";
+      setEnd([y, x]);
     }
     setStates(newStates);
   };
