@@ -1,0 +1,28 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+*:before, *:after {
+  box-sizing: border-box;
+}
+
+.container {
+	display: grid;
+	background-color: #345;
+	background-image: linear-gradient(to bottom, #0009, transparent);
+	color: #eee;
+	font-family: 'Lato', sans-serif;
+	font-size: 62.5%;
+	box-sizing: border-box;
+	border: 1px solid #000;
+  grid-template-columns: repeat(auto-fill, 30px);
+  grid-template-rows: repeat(auto-fill, 30px);
+	grid-gap: 1px;
+	justify-self: center; 
+	max-width: 100vw;
+	height: 100wh;
+	margin: 0 auto;
+}
+

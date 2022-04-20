@@ -1,0 +1,24 @@
+.node {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    background-color: white;
+  }
+  .green {
+      background-color: green;
+  }
+  
+  .node:hover {
+    background-color: #fcfcfc;
+  }
+
+  .node:hover::after {
+    content: '>';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+    color: black;
+    font-size: 40px;
+    font-weight: bold;
+  }
