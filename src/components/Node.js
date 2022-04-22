@@ -1,13 +1,13 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import "./Node.css";
 import React from "react";
 
-const Node = (props) => {
+const Node = ({ key, x, y, color }) => {
   return (
     <div
-      className={props.color}
+      className={color}
       onClick={() => {
-        console.log(`props.x: ${props.x} props.y: ${props.y}`);
+        console.log(`props.x: ${x} props.y: ${y}`);
       }}
     ></div>
   );

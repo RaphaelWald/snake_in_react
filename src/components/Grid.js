@@ -1,101 +1,132 @@
 import Node from "./Node";
-import Queue from "./Queue";
 
 import "./Grid.css";
 import React, { useState } from "react";
 
-const createStates = (x, y) => {
-  const nodesState = [];
-  for (let i = 0; i < y; i++) {
-    const row = [];
-    for (let j = 0; j < x; j++) {
-      row.push("node");
-    }
-    nodesState.push(row);
-  }
-  return nodesState;
-};
+const random = (max) => Math.floor(Math.random() * max);
 
 const Grid = () => {
   const lenX = parseInt(window.innerWidth / 31);
   const lenY = parseInt(window.innerHeight / 31);
-
-  const [states, setStates] = useState(createStates(lenX, lenY));
-  const [start, setStart] = useState(false);
-  const [end, setEnd] = useState(false);
-  const [q, setQ] = useState(new Queue());
-
-  const BFS = () => {
-    const statesCopy = [...states];
-    const qCopy = q;
-
-    const [y, x] = qCopy.shift();
-    statesCopy[y][x] = "node green";
-
-    if (y - 1 >= 0 && statesCopy[y - 1][x] !== "node green") {
-      qCopy.push([y - 1, x]);
-    }
-    if (x + 1 < lenX && statesCopy[y][x + 1] !== "node green") {
-      qCopy.push([y, x + 1]);
-    }
-    if (y + 1 < lenY && statesCopy[y + 1][x] !== "node green") {
-      qCopy.push([y + 1, x]);
-    }
-    if (x - 1 >= 0 && statesCopy[y][x - 1] !== "node green") {
-      qCopy.push([y, x - 1]);
-    }
-
-    setStates(statesCopy);
-    setQ(qCopy);
+  const y = random(lenY - 1);
+  const x = random(lenX - 1);
+  const initGrid = () => {
+    const gr = [...Array(lenY)].map((e) => [...Array(lenX)].fill("node"));
+    gr[y][x] = "node blue";
+    return gr;
   };
 
-  if (start && end && q.length > 0) {
+  const [grid, setGrid] = useState(initGrid());
+
+  const [direction, setDirection] = useState("right");
+  const [gameState, setGameState] = useState(true);
+  const [bonus, setBonus] = useState([random(lenY - 1), random(lenX - 1)]);
+  const [queue, setQueue] = useState([
+    [20, 20],
+    [20, 21],
+    [20, 22],
+    [20, 23],
+  ]);
+
+  const updateSnake = () => {
+    const gridCopy = structuredClone(grid);
+    const q = structuredClone(queue);
+    const [yHead, xHead] = q[q.length - 1];
+    gridCopy[yHead][xHead] = "node green";
+    if (yHead === bonus[0] || xHead === bonus[1]) {
+      const newY = random(lenY - 1);
+      const newX = random(lenX - 1);
+      console.log(`NewBonusX: ${newX}, NewBonusY: ${newY}`);
+      gridCopy[newY][newX] = "node blue";
+      setBonus([newY, newX]);
+    } else {
+      const [yTail, xTail] = q.shift();
+      gridCopy[yTail][xTail] = "node";
+    }
+
+    if (
+      direction === "right" &&
+      xHead + 1 < lenX &&
+      isNotInQueue(q, yHead, xHead + 1)
+    ) {
+      q.push([yHead, xHead + 1]);
+    } else if (
+      direction === "up" &&
+      yHead - 1 >= 0 &&
+      isNotInQueue(q, yHead - 1, xHead)
+    ) {
+      q.push([yHead - 1, xHead]);
+    } else if (
+      direction === "left" &&
+      xHead - 1 >= 0 &&
+      isNotInQueue(q, yHead, xHead - 1)
+    ) {
+      q.push([yHead, xHead - 1]);
+    } else if (
+      direction === "down" &&
+      yHead + 1 < lenY &&
+      isNotInQueue(q, yHead + 1, xHead)
+    ) {
+      q.push([yHead + 1, xHead]);
+    } else {
+      for (let [y, x] of q) {
+        gridCopy[y][x] = "node red";
+        setGameState(false);
+      }
+    }
+    setGrid(gridCopy);
+    setQueue(q);
+  };
+
+  const isNotInQueue = (q, y, x) => {
+    for (let [qy, qx] of q) {
+      if (qy === y && qx === x) return false;
+    }
+    return true;
+  };
+
+  if (gameState) {
     setTimeout(() => {
-      BFS();
+      updateSnake();
     }, 10);
   }
 
-  const updateState = (event) => {
-    const x = parseInt(event.pageX / 31);
-    let y = parseInt(event.pageY / 31);
-    let newStates = createStates(lenX, lenY);
-    if (!start || (start && end)) {
-      newStates[y][x] = "node green";
-      setStart([y, x]);
-      setEnd(null);
-      setQ([[y, x]]);
-    } else {
-      newStates[y][x] = "node red";
-      newStates[start[0]][start[1]] = "node green";
-      setEnd([y, x]);
-    }
-    setStates(newStates);
-  };
-
-  const createGrid = (states) => {
-    console.log(states[10][10]);
-    const nodes = [];
-    for (let i = 0; i < lenY; i++) {
-      const row = [];
-      for (let j = 0; j < lenX; j++) {
-        row.push(
-          <Node
-            key={10 * i + j}
-            x={j}
-            y={i}
-            color={states[i][j]}
-            text={states[i][j] === "node" ? "" : ">"}
-          ></Node>
+  const changeSnakeDirection = (event) => {
+    switch (event.keyCode) {
+      case 37:
+        setDirection((prevState) =>
+          prevState !== "right" ? "left" : prevState
         );
-      }
-      nodes.push(row);
+        break;
+      case 38:
+        setDirection((prevState) => (prevState !== "down" ? "up" : prevState));
+        break;
+      case 39:
+        setDirection((prevState) =>
+          prevState !== "left" ? "right" : prevState
+        );
+        break;
+      case 40:
+        setDirection((prevState) => (prevState !== "up" ? "down" : prevState));
+        break;
+      default:
+        break;
     }
-    return nodes;
   };
 
   return (
-    <div className="container" onClick={(event) => updateState(event)}>
-      {createGrid(states)}
+    <div
+      tabIndex="0"
+      className="container"
+      onKeyDown={(event) => {
+        changeSnakeDirection(event);
+      }}
+    >
+      {grid.map((row, rowIdx) =>
+        row.map((node, idx) => (
+          <Node key={idx} x={idx} y={rowIdx} color={node}></Node>
+        ))
+      )}
     </div>
   );
 };
